@@ -22,7 +22,12 @@ import (
 var iconData []byte
 
 func loadIcon() []byte {
-	return iconData
+	icon, err := os.ReadFile("icon.png")
+	if err != nil {
+		fmt.Println("Erro ao carregar o ícone:", err)
+		return nil
+	}
+	return icon
 }
 
 func main() {
@@ -38,7 +43,7 @@ func main() {
 
 	// Botão de informação
 	infoButton := widget.NewButton("INFO", func() {
-		_dialog.ShowInformation("🦗 Grilo 🦗", "Criado por Matheus Ferreira", myWindow)
+		_dialog.ShowInformation("🦗 Grilo 🦗", "Criado por Matheus Ferreira \n\n (2025.02.11-15.50)", myWindow)
 	})
 
 	// Botão para selecionar arquivo
@@ -159,6 +164,7 @@ func processRarFile(rarPath string, resultLabel *widget.Label) error {
 func validateSQLFromReader(reader *bufio.Reader, resultLabel *widget.Label) {
 	var tableCount int
 	var lastTables []string
+	var hasWhatsappTable bool
 
 	for {
 		line, err := reader.ReadString('\n')
@@ -175,6 +181,9 @@ func validateSQLFromReader(reader *bufio.Reader, resultLabel *widget.Label) {
 			if len(lastTables) > 5 {
 				lastTables = lastTables[1:]
 			}
+			if strings.HasPrefix(tableName, "whatsapp_") {
+				hasWhatsappTable = true
+			}
 		}
 	}
 
@@ -184,10 +193,10 @@ func validateSQLFromReader(reader *bufio.Reader, resultLabel *widget.Label) {
 		result += fmt.Sprintf("\n- %s", table)
 	}
 
-	if isBackupComplete(lastTables) {
-		result += "\n\n\nBackup completo"
+	if hasWhatsappTable {
+		result += "\n\n\nBackup completo, tabelas WhatsApp encontradas"
 	} else {
-		result += "\n\n\nBackup incompleto"
+		result += "\n\n\nBackup incompleto, tabelas WhatsApp não existem"
 	}
 
 	resultLabel.SetText(result)
